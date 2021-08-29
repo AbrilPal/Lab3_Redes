@@ -106,10 +106,7 @@ class Cliente(xmpp.ClientXMPP):
             print("2. Mostrar todos los usuarios/contactos y su estado") # done
             print("3. Agregar un usuario a los contactos") # done
             print("4. Mostrar detalles de contacto de un usuario") # done
-            print("5. participar en conversaciones grupales")
             print("6. Definir mensaje de presencia") # done
-            print("7. Enviar/recibir notificaciones")
-            print("8. Enviar/recibir archivos")
             print("9. Eliminar la cuenta del servidor") # done
             print("10. Cerrar sesion") # done
             print("")
@@ -130,21 +127,6 @@ class Cliente(xmpp.ClientXMPP):
                 cambiar_estado()
             elif op_menu == 4:
                 detalle_cuenta()
-            elif op_menu == 5:
-                print()
-                print("Lo siento, esta opcion no esta disponible en esta version!")
-                print()
-                pass
-            elif op_menu == 7:
-                print()
-                print("Lo siento, esta opcion no esta disponible en esta version!")
-                print()
-                pass
-            elif op_menu == 8:
-                print()
-                print("Lo siento, esta opcion no esta disponible en esta version!")
-                print()
-                pass
 
             await self.get_roster()
 
