@@ -1,0 +1,69 @@
+[
+    {
+        "nodo": "A",
+        "vecinos": [
+            "B",
+            "I",
+            "C"
+        ]
+    },
+    {
+        "nodo": "B",
+        "vecinos": [
+            "A",
+            "F"
+        ]
+    },
+    {
+        "nodo": "I",
+        "vecinos": [
+            "A",
+            "D"
+        ]
+    },
+    {
+        "nodo": "C",
+        "vecinos": [
+            "A",
+            "D"
+        ]
+    },
+    {
+        "nodo": "D",
+        "vecinos": [
+            "F",
+            "E",
+            "I",
+            "C"
+        ]
+    },
+    {
+        "nodo": "F",
+        "vecinos": [
+            "B",
+            "D",
+            "G",
+            "H"
+        ]
+    },
+    {
+        "nodo": "G",
+        "vecinos": [
+            "F",
+            "E"
+        ]
+    },
+    {
+        "nodo": "E",
+        "vecinos": [
+            "D",
+            "G"
+        ]
+    },
+    {
+        "nodo": "H",
+        "vecinos": [
+            "F"
+        ]
+    }
+]
