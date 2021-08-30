@@ -8,6 +8,7 @@ import logging
 from getpass import getpass
 from argparse import ArgumentParser
 import slixmpp as xmpp
+import json
 
 # logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
 
@@ -25,9 +26,42 @@ class Cliente(xmpp.ClientXMPP):
 
         def mensaje_privado():
             to = input("Para: ")
+            # saber el nodo al que lo quiere enviar
+            contactos = self.client_roster.presence(to)
+            for res, pres in contactos.items():
+                nodo_recibe =  pres['status']
+            print("Este es el nodo: ", nodo_recibe)
+            # saber mi nodo
+            contactos = self.client_roster.presence(self.jid)
+            for res, pres in contactos.items():
+                nodo_manda =  pres['status']
+            print("Este es mi nodo: ", nodo_manda)
             msg = input("Mensaje: ")
-            self.send_message(mto= to, mbody= msg, mtype='chat')
-            print("********* Mensaje enviado exitosamente *********")
+            flooding(nodo_manda, nodo_recibe, msg)
+            # self.send_message(mto= to, mbody= msg, mtype='chat')
+            # print("********* Mensaje enviado exitosamente *********")
+
+        def flooding(nodo1, nodo2,mensaje):
+            print("entro")
+            f = open("Ruta.json", "r")
+            content = f.read()
+            jsondecoded = json.loads(content)
+            # print(jsondecoded)
+            for entity in jsondecoded["nodos"]:
+                nodo = entity["nodo"]
+                vecino = entity["vecinos"]
+                if (nodo1 == nodo):
+                    print("tu nodo: ",nodo)
+                    for i in range(len(vecino)):
+                        print("vecino: ",vecino[i])
+                        # self.send_message(mto= , mbody= msg, mtype='chat')
+             
+            # with open('Ruta.json') as file:
+            #     data = json.load(file)
+            #     for client in data['nodo']:
+            #         print('nodo', client['nodo'])
+            #         print('vecinos :', client['vecinos'])
+            #         print('')
 
         def cerra_sesion():
             self.disconnect()

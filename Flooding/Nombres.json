@@ -1,0 +1,36 @@
+{
+    "nombres":[
+        {
+            "nodo": "A",
+            "usuario": "usuario2@alumchat.xyz"
+        },
+        {
+            "nodo": "B",
+            "usuario": "usuario1@alumchat.xyz"
+        },
+        {
+            "nodo": "c",
+            "usuario": "usuario3@alumchat.xyz"
+        },
+        {
+            "nodo": "D",
+            "usuario": "usuario4@alumchat.xyz"
+        },
+        {
+            "nodo": "E",
+            "usuario": "usuario5@alumchat.xyz"
+        },
+        {
+            "nodo": "F",
+            "usuario": "usuario6@alumchat.xyz"
+        },
+        {
+            "nodo": "G",
+            "usuario": "usuario7@alumchat.xyz"
+        },
+        {
+            "nodo": "H",
+            "usuario": "18198@alumchat.xyz"
+        }
+    ]
+}
