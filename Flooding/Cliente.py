@@ -18,7 +18,6 @@ class Cliente(xmpp.ClientXMPP):
         self.jid = jid
         self.password = password
         self.add_event_handler("session_start", self.start)
-        self.add_event_handler("register", self.registration)
         self.add_event_handler("message", self.mensajes)
 
     async def start(self, event):
@@ -174,70 +173,30 @@ class Cliente(xmpp.ClientXMPP):
         print(usuario_mostar , ": ", mensaje)
         print()
 
-    async def registration(self, iq):
-        self.send_presence()
-        self.get_roster()
+if __name__ == '__main__':
+    # Setup the command line arguments.
+    parser = ArgumentParser(description=Cliente.__doc__)
 
-        resp = self.Iq()
-        resp['type'] = 'set'
-        resp['register']['username'] = self.boundjid.user
-        resp['register']['password'] = self.password
+    # Output verbosity options.
+    parser.add_argument("-q", "--quiet", help="set logging to ERROR",
+                        action="store_const", dest="loglevel",
+                        const=logging.ERROR, default=logging.INFO)
+    parser.add_argument("-d", "--debug", help="set logging to DEBUG",
+                        action="store_const", dest="loglevel",
+                        const=logging.DEBUG, default=logging.INFO)
 
-        try:
-            await resp.send()
-            logging.info("Account created for %s!" % self.boundjid)
-        except IqError as e:
-            logging.error("Could not register account: %s" %
-                    e.iq['error']['text'])
-            self.disconnect()
+    usuario = input("Usuario: ")
+    password = getpass("Contraseña: ")
 
-    def ingresar():
-        # Setup the command line arguments.
-        parser = ArgumentParser(description=Cliente.__doc__)
+    xmpp = Cliente(usuario, password)
+    xmpp.register_plugin('xep_0030') 
+    xmpp.register_plugin('xep_0004')
+    xmpp.register_plugin('xep_0077')
+    xmpp.register_plugin('xep_0199')
+    xmpp.register_plugin('xep_0066')
+    xmpp["xep_0077"].force_registration = True
 
-        # Output verbosity options.
-        parser.add_argument("-q", "--quiet", help="set logging to ERROR",
-                            action="store_const", dest="loglevel",
-                            const=logging.ERROR, default=logging.INFO)
-        parser.add_argument("-d", "--debug", help="set logging to DEBUG",
-                            action="store_const", dest="loglevel",
-                            const=logging.DEBUG, default=logging.INFO)
-
-        usuario = input("Usuario: ")
-        password = getpass("Contraseña: ")
-
-        xmpp = Cliente(usuario, password)
-        xmpp.register_plugin('xep_0030') 
-        xmpp.register_plugin('xep_0199') 
-
-        # Connect to the XMPP server and start processing XMPP stanzas.
-        xmpp.connect()
-        xmpp.process(forever=False)
-
-    def registo():
-        # Setup the command line arguments.
-        parser = ArgumentParser(description=Cliente.__doc__)
-
-        # Output verbosity options.
-        parser.add_argument("-q", "--quiet", help="set logging to ERROR",
-                            action="store_const", dest="loglevel",
-                            const=logging.ERROR, default=logging.INFO)
-        parser.add_argument("-d", "--debug", help="set logging to DEBUG",
-                            action="store_const", dest="loglevel",
-                            const=logging.DEBUG, default=logging.INFO)
-
-        usuario = input("Usuario: ")
-        password = getpass("Contraseña: ")
-
-        xmpp = Cliente(usuario, password)
-        xmpp.register_plugin('xep_0030') 
-        xmpp.register_plugin('xep_0004')
-        xmpp.register_plugin('xep_0077')
-        xmpp.register_plugin('xep_0199')
-        xmpp.register_plugin('xep_0066')
-        xmpp["xep_0077"].force_registration = True
-
-        # Connect to the XMPP server and start processing XMPP stanzas.
-        xmpp.connect()
-        xmpp.process(forever=False)
+    # Connect to the XMPP server and start processing XMPP stanzas.
+    xmpp.connect()
+    xmpp.process(forever=False)
         
