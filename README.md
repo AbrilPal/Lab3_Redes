@@ -1,5 +1,5 @@
 # Laboratorio 3
-### author: Abril Palencia, 18198 Isabel Ortiz, Cristina
+### author: Abril Palencia 18198, Isabel Ortiz 18176, Cristina Bautista 161260
 
 *****
 
@@ -36,3 +36,11 @@ In order to run the program correctly you need to follow the following steps:
  #### The interface of this project is in console.
  #### All users must have @alumchat.xyz. (Ej. newUser@alumchat.xyz)
  #### Warning: This client uses the server that was given in the class and sometimes the server is not responding. If that happens you have to close the client and run it again.
+ 
+ ## References
+ GeeksForGeeks. (2021). Unicast Routing – Link State Routing. From https://www.geeksforgeeks.org/unicast-routing-link-state-routing/
+ 
+ ## Notes
+ For the LSR algorithm, go to the LSR folder
+ 
+ Run the algorithm `python3 router.py`
