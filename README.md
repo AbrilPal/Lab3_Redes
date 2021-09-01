@@ -43,4 +43,6 @@ In order to run the program correctly you need to follow the following steps:
  ## Notes
  For the LSR algorithm, go to the LSR folder
  
- Run the algorithm `python3 router.py`
+ Run the algorithm 
+ 
+      python3 router.py
