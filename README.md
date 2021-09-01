@@ -1,5 +1,5 @@
-# Project No.1
-### author: Abril Palencia, 18198
+# Laboratorio 3
+### author: Abril Palencia, 18198 Isabel Ortiz, Cristina
 
 *****
 
