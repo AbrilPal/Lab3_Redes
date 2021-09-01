@@ -1,3 +1,4 @@
-{"type":"names", "config":{'A': 'isaonaranjo@alumchat.xyz', 'B': 'isaan@alumchat.xyz', 
-'C': 'isas@alumchat.xyz', 'D': 'usrnjo@alumchat.xyz', 'E': 'joseff@alumchat.xyz', 
-'F': 'davidisa@alumchat.xyz', 'G': 'isanoe@alumchat.xyz'} }
+"type":"names", "config":{'A': 'pal18198@alumchat.xyz', 'B': 'ven18341@alumchat.xyz', 'C': 
+'sar17055@alumchat.xyz', 'D': 'per16362@alumchat.xyz',
+ 'E': 'rod16776@alumchat.xyz', 'F': 'ret16339@alumchat.xyz', 
+'G': 'bau161260@alumchat.xyz', 'H': 'rui18259@alumchat.xyz'} }

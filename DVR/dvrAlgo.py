@@ -14,7 +14,6 @@ from settings import ECO_TIMER, TABLE_TIMER
 '''
 Tomado de: https://slixmpp.readthedocs.io/en/slix-1.6.0/getting_started/echobot.html
         https://github.com/fritzy/SleekXMPP/tree/develop/examples
-
 '''
 global interval
 
@@ -32,7 +31,6 @@ class dvrAlgo(slixmpp.ClientXMPP):
         self.neighbors = list()
         self.neighborsTimeSend = None
         self.table = None
-
         if not login:
             self.add_event_handler("register", self.register)
         
@@ -164,7 +162,7 @@ class dvrAlgo(slixmpp.ClientXMPP):
                         if d != self.table.at['distance', node]:
                             self.table.at['distance', node] = d
                             self.table.at['neighbour', node] = senderNode
- 
+    
     async def sendMessage(self):
 
         contact = str(await ainput("JID del usuario al que deseas enviar mensaje: "))
@@ -209,4 +207,3 @@ class dvrAlgo(slixmpp.ClientXMPP):
             self.send_message(mto=get_JID(names_file=self.names_file, ID=neighbour),
                         mbody=json.dumps(msg),
                         mtype='normal') 
-
