@@ -1,3 +1,5 @@
+# Laboratorio 3 - Redes
+# Abril Palencia, Cristina Bautista, Isabel Ortiz 
 import getpass
 from dvrAlgo import dvrAlgo
 import logging
@@ -26,7 +28,6 @@ if __name__ == '__main__':
                                         3. Salir
                                         
                                     ----->"""))
-            
             if(initialMenu == 1):
                 jid = str(input("JID: "))
                 password = str(getpass.getpass("Contraseña: "))
@@ -49,4 +50,4 @@ if __name__ == '__main__':
             else:
                 print("Ingresa una opción correcta")
         except: 
-            print("Ingresa una opción correcta")
+            print("ERROR")

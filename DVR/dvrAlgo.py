@@ -1,3 +1,6 @@
+# Laboratorio 3 - Redes
+# Abril Palencia, Cristina Bautista, Isabel Ortiz 
+
 import slixmpp
 import json
 import time
@@ -9,9 +12,10 @@ from utils import get_ID, get_JID, get_neighbors
 from settings import ECO_TIMER, TABLE_TIMER
 
 '''
-Tomado de:https://slixmpp.readthedocs.io/en/slix-1.6.0/getting_started/echobot.html
-https://github.com/fritzy/SleekXMPP/tree/develop/examples'''
+Tomado de: https://slixmpp.readthedocs.io/en/slix-1.6.0/getting_started/echobot.html
+        https://github.com/fritzy/SleekXMPP/tree/develop/examples
 
+'''
 global interval
 
 class dvrAlgo(slixmpp.ClientXMPP):
@@ -108,16 +112,15 @@ class dvrAlgo(slixmpp.ClientXMPP):
             await msg.send()
             print("Cuenta creada!")
         except:
-            print("Error al crear cuenta")
+            print("Error")
             self.disconnect()
 
     def message(self, msg):
         if msg['type'] == 'chat':
             message = json.loads(msg['body'])
             if message["recipientNode"] == self.jid:        
-                print("----------------Notificación----------------------")
+                print("NOTIFICACION")
                 print(json.dumps(message, indent=4, sort_keys=True))
-                print("--------------------------------------------------")
             else:
                 message["jumps"] = message["jumps"] + 1
                 message["nodesList"].append(self.jid)
@@ -131,7 +134,6 @@ class dvrAlgo(slixmpp.ClientXMPP):
         
         elif msg['type'] == 'normal':
             message = json.loads(msg['body'])
-            # print(message['type'])
             
             if message['type'] == 'ecoSend':
                 message['type'] = 'ecoResponse'
@@ -149,7 +151,6 @@ class dvrAlgo(slixmpp.ClientXMPP):
                 else:   
                     self.table.at['distance', message["recipientNode"]] = (time.time() - message["sendTime"]) / 2
                     self.table.at['neighbour', message["recipientNode"]] = message["recipientNode"]     
-
 
             elif message['type'] == 'table':
                 table = message["table"]
@@ -173,11 +174,11 @@ class dvrAlgo(slixmpp.ClientXMPP):
             recipientNode = get_ID(names_file=self.names_file, JID=contact)
             if(recipientNode in self.table.columns and self.table[recipientNode]['neighbour'] is not np.nan and self.table[recipientNode]['distance'] is not np.inf):
                 msg = {}
-                msg["senderNode"] = self.jid
-                msg["recipientNode"] = contact
-                msg["jumps"] = 1
-                msg["distance"] = self.table[recipientNode]['distance']
-                msg["nodesList"] = [self.jid]
+                msg["hola"] = self.jid
+                msg[" "] = contact
+                msg[" "] = 1
+                msg[" "] = self.table[recipientNode]['distance']
+                msg[" "] = [self.jid]
                 msg["message"] = message
                 self.send_message(mto=get_JID(names_file=self.names_file, ID=self.table[recipientNode]['neighbour']),
                                 mbody=json.dumps(msg),
@@ -190,10 +191,10 @@ class dvrAlgo(slixmpp.ClientXMPP):
     def send_eco(self):
         for neighbour in self.neighbors:
             msg = {}
-            msg["type"] = 'ecoSend'
-            msg["senderNode"] = self.nickName
-            msg["recipientNode"] = neighbour
-            msg["sendTime"] = time.time()
+            msg[" "] = 'ecoSend'
+            msg[" "] = self.nickName
+            msg[" "] = neighbour
+            msg[" "] = time.time()
             self.send_message(mto=get_JID(names_file=self.names_file, ID=neighbour),
                         mbody=json.dumps(msg),
                         mtype='normal')
@@ -201,9 +202,9 @@ class dvrAlgo(slixmpp.ClientXMPP):
     def send_table(self):
         for neighbour in self.neighbors:
             msg = {}
-            msg["type"] = 'table'
-            msg["senderNode"] = self.nickName
-            msg["recipientNode"] = neighbour
+            msg[" "] = 'table'
+            msg[" "] = self.nickName
+            msg[" "] = neighbour
             msg["table"] = self.table.loc['distance'].to_dict()
             self.send_message(mto=get_JID(names_file=self.names_file, ID=neighbour),
                         mbody=json.dumps(msg),

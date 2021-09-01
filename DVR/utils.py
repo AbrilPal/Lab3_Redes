@@ -1,3 +1,6 @@
+# Laboratorio 3 - Redes
+# Abril Palencia, Cristina Bautista, Isabel Ortiz 
+
 def get_JID(names_file,ID):
 	"""
 		This function receives the ID in the topology and returns 
@@ -46,7 +49,6 @@ def get_ID(names_file, JID):
 		return(name)
 	else:
 		raise Exception('The file has not a valid format for names')
-
 
 def get_neighbors(topology_file, ID):
 	"""
