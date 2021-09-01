@@ -163,15 +163,17 @@ class Cliente(xmpp.ClientXMPP):
 
             await self.get_roster()
 
-    async def mensajes(self, mensaje):
-        logging.info(mensaje)
-        print()
-        print("            CHAT           ")
-        usuario = str(mensaje["from"]).split("/")
-        usuario_mostar = usuario[0]
-        mensaje = mensaje["body"]
-        print(usuario_mostar , ": ", mensaje)
-        print()
+    def mensajes(self, mensaje):
+        if mensaje['type'] in ('chat', 'normal'):
+            print("            CHAT           ")
+            usuario = str(mensaje["from"]).split("/")
+            usuario_mostar = usuario[0]
+            mensaje = mensaje["body"]
+            print(usuario_mostar , ": ", mensaje)
+
+            # implementar flooding
+            # msg.reply("Thanks for sending abril \n%(body)s" % msg).send()
+
 
 if __name__ == '__main__':
     # Setup the command line arguments.
