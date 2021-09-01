@@ -1,214 +1,208 @@
-import slixmpp
-import logging
-from getpass import getpass
-from argparse import ArgumentParser
-from slixmpp.exceptions import IqError, IqTimeout
-import asyncio
-
 import json
-
-from numpy import inf
-
-
-# Muestra en consola e DEBUG
-logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
-
-def jsonDict(archivo):
-  with open(archivo) as jsonFile:
-    return json.load(jsonFile)
-
-def getData(node, archivo):
-  info = jsonDict(archivo)
-  if info['type'] == 'topo':
-    return info['config'][node]
-  elif info['type'] == 'users':
-    return info['config']
-  else:
-    return -1
-
-def keys(archivo):
-  info = jsonDict(archivo)
-  return list(info['config'].keys())
-
-class Client(slixmpp.ClientXMPP):
-  # Empieza lo bueno
-  def __init__(self, userid, password,  t_keys=None):
-    slixmpp.ClientXMPP.__init__(self, userid, password)
-    self.userid = userid
-    self.password = password
-    self.connected_event = asyncio.Event()
-    # self.topo_keys = t_keys
+import asyncio
+import numpy as np
+from nodo import Nodo
+from time import time
+from asyncio import sleep
+from aioconsole import aprint
+from slixmpp.basexmpp import BaseXMPP
+from xml.etree import ElementTree as ET
+from scipy.sparse.csgraph import shortest_path
 
 
-    self.add_event_handler("session_start", self.sessionStart)
-    self.add_event_handler("register", self.registrar)
-    self.add_event_handler("message", self.message)
-    # self.add_event_handler("got_online", self.node_connected)
-    self.add_event_handler("got_offline", self.node_disconnected)
+DEAD = 20
 
-    self.register_plugin('xep_0030')
-    self.register_plugin('xep_0045')
-    self.register_plugin('xep_0004')
-    self.register_plugin('xep_0060')
-    self.register_plugin('xep_0199')
+class LSR(Nodo):
+  def __init__(self, userid, password, entity, asoc_nodes = None):
+    super().__init__(userid, password)
+    self.LSA_seqnum = 0
+    self.LSA = {}
+    self.entity = entity
+    self.basexmpp = BaseXMPP()
+    self.topo = {}
+    self.all_nodes = [self.entity]
+    self.ady_matrix = []
+    self.neighbors = asoc_nodes
+    self.neighbors_niknames = self.neighbors.keys() if self.neighbors != None else []
+    self.build_topo_package()
+    self.short_matrix = None
+    self.static_neighbors = self.neighbors_niknames
 
-  async def sessionStart(self, e):
-    try:
-      self.send_presence()
-      await self.get_roster()
-      self.connected_event.set()
 
-    except IqError as e:
-      logging.error("Could not register account: %s" % e.iq['error']['condition'])
-    except IqTimeout:
-      logging.error("No response from server.")
+  def send_hello(self, hto, hfrom):
+    self.send_message(hto, "<hello>", mfrom=hfrom)
+    print("Mandando hello al vecino")
 
-    loginStart = True
-    while loginStart:
-      print("""
+  def eco(self, eco_to, eco_from):
+    self.send_message(
+      mto=eco_to,
+      mbody="<eco time='%f'></eco>" % time(),
+      mfrom=eco_from
+    )
       
-      Submenu
 
-      1.  Nombre del nodo asignado al carnet
-      8.  Eliminar la cuenta
-      9.  Salir de la sesion
+  def build_topo_package(self):
+    self.LSA['node'] = self.entity
+    self.LSA['seq'] = self.LSA_seqnum
+    self.LSA['age'] = None
+    self.LSA['weights'] = {}
+    print("Vecinos", self.neighbors_niknames)
+    for node in self.neighbors_niknames:
+      self.LSA['weights'][node] = 5
+    self.topo[self.LSA['node']] = self.LSA
       
+
+  def update_topo_package(self, node, weight):
+    self.LSA['weights'][node] = weight
+  
+
+  def send_topo_package(self, to):
+    self.LSA_seqnum += 1
+    self.LSA['seq'] = self.LSA_seqnum
+    self.LSA['age'] = time()
+    self.topo[self.LSA['node']] = self.LSA
+    lsa_json = json.dumps(self.LSA)
+    self.send_message(to, "<pack lsa='%s'></pack>" % lsa_json, mfrom=self.boundjid)
       
-      """)
-      loginOption = int(input("Que opcion desea realizar? "))
+  
+  def shortest_path(self):
+    path = []
+    return path.reverse()
 
-      if loginOption == 1:
-        wantedNode = input("Escriba el nodo: ")
-        topologia = getData(wantedNode, "topologia.txt")
-        print(topologia)
-        usuarios = getData(wantedNode, "usuarios.txt")
-        print(usuarios)
+  def dijkstra(self):
+    if len(self.ady_matrix) >= 1:
+      D, Pr = shortest_path(
+        self.ady_matrix, 
+        directed=True, 
+        method='D', 
+        return_predecessors=True)
+      self.short_matrix = Pr
 
-      elif loginOption == 8:
-        self.register_plugin('xep_0030') 
-        self.register_plugin('xep_0004')
-        self.register_plugin('xep_0077')
-        self.register_plugin('xep_0199')
-        self.register_plugin('xep_0066')
+  async def update_tables(self):
+    while True:
+      for router in self.neighbors_niknames:
+        self.eco(self.neighbors[router], self.boundjid)
+      await asyncio.sleep(5)
+      for router in self.neighbors_niknames:
+        self.send_topo_package(self.neighbors[router])
+      self.dijkstra()
+              
 
-        eliminar = self.Iq()
-        eliminar['type'] = 'set'
-        eliminar['from'] = self.boundjid.user
-        eliminar['register']['remove'] = True
-        print('*************Eliminado******************')
-        eliminar.send()
+  def get_nickname(self, userid):
+    key_list = list(self.neighbors.keys())
+    if userid not in self.neighbors.values():
+      return 
+    val_list = list(self.neighbors.values())
+    return key_list[val_list.index(userid)]
+
+
+  def init_listener(self):
+    self.loop.create_task(self.update_tables())
+
+  def flood(self, to, package):
+    self.send_message(to, "<pack lsa='%s'></pack>" % package, mfrom=self.boundjid)
+
+  def send_msg(self, to, msg):
+    path = self.get_shortest_path(to)
+    print("%s: el camino mas corto: %s" %(self.entity,path))
+    if len(path) > 1:
+      self.send_message(
+        mto=self.neighbors[path[1]],
+        mbody="<msg chat='%s' to='%s' ></msg>" %(msg, to),
+        mfrom=self.boundjid
+      )
+
+
+
+  def update_ady_matrix(self):
+    length = len(self.all_nodes)
+    self.ady_matrix = np.zeros((length, length), dtype=np.float16)
+    for row_node in self.all_nodes:
+      for col_node in self.topo[row_node]['weights'].keys():
+        row = self.all_nodes.index(row_node)
+        if col_node in self.all_nodes:
+          col = self.all_nodes.index(col_node)
+        else:
+          return
+        self.ady_matrix[row][col] = self.topo[row_node]['weights'][col_node]
+
+  def parse_path(self, path):
+    return [self.all_nodes[i] for i in path]
+    
+  
+  def get_shortest_path(self, destiny): #should be a character
+    _from = self.all_nodes.index(self.entity)
+    destiny = self.all_nodes.index(destiny)
+    path = [destiny]
+    k = destiny
+    while self.short_matrix[_from, k] != -9999:
+      path.append(self.short_matrix[_from, k])
+      k = self.short_matrix[_from, k]
+    return self.parse_path(path[::-1]) 
         
-        self.disconnect()
-
-      elif loginOption == 9:
-        self.disconnect()
-        loginStart = False
-
-      else:
-        print("Por favor escoje una opcion del menu")
-
-
-
-
-  async def registrar(self, iq):
-    resp = self.Iq()
-    resp['type'] = 'set'
-    resp['register']['username'] = self.boundjid.user
-    resp['register']['password'] = self.password
-
-    try:
-      await resp.send()
-      logging.info("Account created for %s!" % self.boundjid)
-
-      print("\n\n\n\n\n SE R E G I S T R O")
-
-    except IqError as e:
-      logging.error("Could not register account: %s" % e.iq['error']['text'])
-      self.disconnect()
-    except IqTimeout:
-      logging.error("No response from server.")
-      self.disconnect()
-
 
   async def message(self, msg):
     if msg['type'] in ('normal', 'chat'):
-      await print("\n{}".format(msg['body']))
-  
-  def node_connected(self, e):
-    pass
+      if msg['body'][:7] in ("<hello>"):
+        msg.reply(self.boundjid).send()
+        print("Recibido hello del vecino, enviando respuesta")
+      elif msg['body'][1:4] == "eco":
+        xml_parse = ET.fromstring(msg['body'])
+        timestamp = float(xml_parse.attrib['time'])
+        if self.is_offline:
+          timestamp -= 100
+        msg.reply("<a_eco time='%s'></a_eco>" % str(timestamp)).send()
+      elif msg['body'][1:6] == "a_eco":
+        pack_from = msg['from'].bare
+        node_entity = self.get_nickname(pack_from)
+        end_time = time()
+        msg_parse = ET.fromstring(msg['body'])
+        start_time = float(msg_parse.attrib['time'])
+        delta_time = (end_time - start_time) / 2
+        delta_time = round(delta_time, 1)
+        self.update_topo_package(node_entity, delta_time)
+      elif msg['body'][1:5] == "pack":
+        parse = ET.fromstring(msg['body'])
+        pack_json = parse.attrib['lsa']
+        lsa = json.loads(pack_json)
+        n_entity = lsa['node']
+        if lsa['node'] not in self.topo.keys():
+          self.topo[lsa['node']] = lsa
+          for neighbor in self.neighbors_niknames:
+            if neighbor != n_entity:
+              self.flood(self.neighbors[neighbor], json.dumps(lsa))
+          if lsa['node'] not in self.all_nodes:
+            self.all_nodes.append(lsa['node'])
+            self.all_nodes.sort()
+          self.update_ady_matrix() 
+        else:
+          try:
+            d_time = float(lsa['age']) - float(self.topo[lsa['node']]['age']) 
+          except TypeError as e:
+            pass
+          if self.topo[lsa['node']]['seq'] >= lsa['seq']:
+            if d_time > DEAD:
+              self.topo[lsa['node']] = lsa
+              for neighbor in self.neighbors_niknames:
+                if neighbor != n_entity:
+                  self.flood(self.neighbors[neighbor], json.dumps(lsa))
+            else:
+              pass
+          else:
+            self.topo[lsa['node']] = lsa
+            for neighbor in self.neighbors_niknames:
+              if neighbor != n_entity:
+                self.flood(self.neighbors[neighbor], json.dumps(lsa))
+            self.update_ady_matrix()
+        # print("Esta es la topologia por el momento: \n", self.ady_matrix)
 
-  def node_disconnected(self, e):
-    print("\n{}".format(e['from'].bare))
-
-  
-
-
-def registrar(userid, password):
-  cliente = Client(userid, password)
-  cliente.register_plugin("xep_0030")
-  cliente.register_plugin("xep_0004")
-  cliente.register_plugin("xep_0077")
-  cliente.register_plugin("xep_0199")
-  cliente.register_plugin("xep_0066")
-
-  cliente["xep_0077"].force_registration = True
-
-  cliente.connect()
-  cliente.process(forever=False)
-
-
-  
-def iniciarSesion(userid, password):
-  cliente = Client(userid, password)
-  cliente.register_plugin("xep_0030")
-  cliente.register_plugin("xep_0199")
-
-  cliente.connect()
-  cliente.process(forever=False)
-
-
-
-start = True
-
-while start:
-  print("""
-  Bienvenido!
-
-  0. Registrar
-  1. Iniciar Sesion
-  2. Salir del proyecto
-  
-  """)
-  firstOption = int(input("Que opcion desea realizar? "))
-  if firstOption == 0:
-
-    userid = input("Ingrese userid con @alumchat.xyz: ")
-    password = input("Ingrese una password: ")
-
-    registrar(userid, password)
-    
-
-
-  elif firstOption == 1:
-
-    userid = input("Ingrese userid con @alumchat.xyz: ")
-    password = input("Ingrese una password: ")
-    iniciarSesion(userid, password)
-
-    
-
-
-
-  elif firstOption == 2:
-    print("Hasta pronto!")
-    start = False
-
-
-  else:
-    print("Por favor escoje una opcion del menu")
-
-
-
-
-
-
+      elif msg['body'][1:4] == "msg":
+        msg_parse = ET.fromstring(msg['body'])
+        bare_msg = msg_parse.attrib['chat']
+        msg_to = msg_parse.attrib['to']
+        if msg_to != self.entity:
+          self.send_msg(msg_to, bare_msg)
+        else:
+          print("Mensajes recibidos: %s" % bare_msg)
+      else:
+        pass

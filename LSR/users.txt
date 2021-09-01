@@ -3,40 +3,40 @@
   "config" :
   {
     "A" : 
-    [
+    
       "161260@alumchat.xyz"
-    ],
+    ,
     "B" : 
-    [
+    
       "18198@alumchat.xyz"
-    ],
+    ,
     "C" :
-    [
-      "161260_1@alumchat.xyz"
-    ],
+    
+      "bau161260@alumchat.xyz"
+    ,
     "D" : 
-    [
+    
       "161260@alumchat.xyz"
-    ],
+    ,
     "E" : 
-    [
+    
       "18198@alumchat.xyz"
-    ],
+    ,
     "F" :
-    [
+    
       "161260_1@alumchat.xyz"
-    ],
+    ,
     "G" : 
-    [
+    
       "161260@alumchat.xyz"
-    ],
+    ,
     "H" : 
-    [
+    
       "18198@alumchat.xyz"
-    ],
+    ,
     "I" :
-    [
+    
       "161260_1@alumchat.xyz"
-    ]
+    
   }
 }
